@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "scripts": {
+    "start": "parcel src/index.html",
+    "build": "parcel build src/index.html"
+  },
+  "name": "letter-physics",
+  "version": "1.0.0",
+  "description": "Letters go boing boing on screen lolol",
+  "main": "index.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jwem/Letter-physics-using-React-JS.git"
+  },
+  "author": "Jwem",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jwem/Letter-physics-using-React-JS/issues"
+  },
+  "homepage": "https://github.com/Jwem/Letter-physics-using-React-JS#readme"
+}
