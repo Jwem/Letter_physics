@@ -111,7 +111,7 @@ const App = () => {
       const rect = containerRef.current.getBoundingClientRect();
       const clickX = event.clientX - rect.left;
       const clickY = event.clientY - rect.top;
-      const forceRadius = 1000; // circle radius in pixels
+      const forceRadius = 200; // circle radius in pixels
       const forceMagnitude = 0.25; // base force magnitude
       const bodies = engine.world.bodies;
       bodies.forEach(body => {
