@@ -1,4 +1,4 @@
-# Letters but Physics
+# Letter Physics
 
 This project is a physics-based animation where letters drop and interact with the environment using the Matter.js physics engine.
 
