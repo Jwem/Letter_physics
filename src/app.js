@@ -23,8 +23,10 @@ class ErrorBoundary extends React.Component {
 const App = () => {
   const containerRef = useRef(null);
   const engineRef = useRef(null);
+  const runnerRef = useRef(null); // new ref for runner
   const [input, setInput] = useState('');
   const [showHitboxes, setShowHitboxes] = useState(false);
+  const [simulationPaused, setSimulationPaused] = useState(false); // new state
 
   useEffect(() => {
     if (!containerRef.current) {
@@ -80,6 +82,7 @@ const App = () => {
     // Run the renderer and engine runner
     Matter.Render.run(render);
     const runner = Matter.Runner.create();
+    runnerRef.current = runner; // store runner in ref
     Matter.Runner.run(runner, engine);
 
     // Use the 'afterRender' event to draw our letters
@@ -103,8 +106,31 @@ const App = () => {
       });
     });
 
+    // Add click event listener to apply an outwards force in a circular shape
+    const handleClick = (event) => {
+      const rect = containerRef.current.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const clickY = event.clientY - rect.top;
+      const forceRadius = 1000; // circle radius in pixels
+      const forceMagnitude = 0.25; // base force magnitude
+      const bodies = engine.world.bodies;
+      bodies.forEach(body => {
+        const dx = body.position.x - clickX;
+        const dy = body.position.y - clickY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < forceRadius && distance > 0) {
+          const normalizedX = dx / distance;
+          const normalizedY = dy / distance;
+          const magnitude = forceMagnitude * (1 - distance / forceRadius);
+          Matter.Body.applyForce(body, body.position, { x: normalizedX * magnitude, y: normalizedY * magnitude });
+        }
+      });
+    };
+    containerRef.current.addEventListener('click', handleClick);
+
     // Cleanup on component unmount
     return () => {
+      containerRef.current.removeEventListener('click', handleClick);
       Matter.Render.stop(render);
       Matter.World.clear(engine.world);
       Matter.Engine.clear(engine);
@@ -160,6 +186,19 @@ const App = () => {
       });
   };
 
+  // New function to toggle simulation pause/resume
+  const toggleSimulation = () => {
+    if (simulationPaused) {
+      // Resume: run the runner again
+      Matter.Runner.run(runnerRef.current, engineRef.current);
+      setSimulationPaused(false);
+    } else {
+      // Pause: stop the runner
+      Matter.Runner.stop(runnerRef.current);
+      setSimulationPaused(true);
+    }
+  };
+
   return (
     <ErrorBoundary>
       <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
@@ -209,6 +248,10 @@ const App = () => {
           </button>
           <button type="button" onClick={toggleHitboxes} style={{ fontSize: '20px', padding: '10px' }}>
             Toggle Hitboxes
+          </button>
+          {/* New Pause Simulation button */}
+          <button type="button" onClick={toggleSimulation} style={{ fontSize: '20px', padding: '10px' }}>
+            {simulationPaused ? 'Resume Simulation' : 'Pause Simulation'}
           </button>
         </div>
       </div>
