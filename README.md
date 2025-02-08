@@ -16,7 +16,7 @@ This project is a physics-based animation where letters drop and interact with t
 1. Ensure you have Node.js installed.
 2. Navigate to the project folder:
    ```bash
-   cd /D:/VS_code/React_maybe_idk/Letter_physics
+   cd ./././Letter_physics
    ```
 3. Install dependencies:
    ```bash
