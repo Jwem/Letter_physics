@@ -24648,6 +24648,23 @@ const App = ()=>{
     const [input, setInput] = (0, _react.useState)('');
     const [showHitboxes, setShowHitboxes] = (0, _react.useState)(false);
     const [simulationPaused, setSimulationPaused] = (0, _react.useState)(false); // new state
+    // New state for sling controls
+    const [slingRadius, setSlingRadius] = (0, _react.useState)(200);
+    const [slingPower, setSlingPower] = (0, _react.useState)(0.25);
+    // New refs to hold current sling settings
+    const slingRadiusRef = (0, _react.useRef)(slingRadius);
+    const slingPowerRef = (0, _react.useRef)(slingPower);
+    // Update refs when state changes
+    (0, _react.useEffect)(()=>{
+        slingRadiusRef.current = slingRadius;
+    }, [
+        slingRadius
+    ]);
+    (0, _react.useEffect)(()=>{
+        slingPowerRef.current = slingPower;
+    }, [
+        slingPower
+    ]);
     (0, _react.useEffect)(()=>{
         if (!containerRef.current) {
             console.error('Container not found!');
@@ -24718,14 +24735,25 @@ const App = ()=>{
                 }
             });
         });
-        // Add click event listener to apply an outwards force in a circular shape
+        // Cleanup on component unmount
+        return ()=>{
+            _matterJs.Render.stop(render);
+            _matterJs.World.clear(engine.world);
+            _matterJs.Engine.clear(engine);
+            render.canvas.remove();
+            render.textures = {};
+        };
+    }, []); // run only once
+    // Register event listener once
+    (0, _react.useEffect)(()=>{
         const handleClick = (event)=>{
             const rect = containerRef.current.getBoundingClientRect();
             const clickX = event.clientX - rect.left;
             const clickY = event.clientY - rect.top;
-            const forceRadius = 1000; // circle radius in pixels
-            const forceMagnitude = 0.25; // base force magnitude
-            const bodies = engine.world.bodies;
+            // Use current values from refs instead of state
+            const forceRadius = slingRadiusRef.current;
+            const forceMagnitude = slingPowerRef.current;
+            const bodies = engineRef.current.world.bodies;
             bodies.forEach((body)=>{
                 const dx = body.position.x - clickX;
                 const dy = body.position.y - clickY;
@@ -24742,16 +24770,10 @@ const App = ()=>{
             });
         };
         containerRef.current.addEventListener('click', handleClick);
-        // Cleanup on component unmount
         return ()=>{
             containerRef.current.removeEventListener('click', handleClick);
-            _matterJs.Render.stop(render);
-            _matterJs.World.clear(engine.world);
-            _matterJs.Engine.clear(engine);
-            render.canvas.remove();
-            render.textures = {};
         };
-    }, []);
+    }, []); // empty dependency array so sliders don't reset the app
     // On form submit, create a physics body for each letter of the input string
     const handleSubmit = (e)=>{
         e.preventDefault();
@@ -24824,7 +24846,7 @@ const App = ()=>{
                     }
                 }, void 0, false, {
                     fileName: "src/app.js",
-                    lineNumber: 206,
+                    lineNumber: 223,
                     columnNumber: 9
                 }, undefined),
                 /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("form", {
@@ -24850,7 +24872,7 @@ const App = ()=>{
                             }
                         }, void 0, false, {
                             fileName: "src/app.js",
-                            lineNumber: 223,
+                            lineNumber: 240,
                             columnNumber: 11
                         }, undefined),
                         /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("button", {
@@ -24862,13 +24884,13 @@ const App = ()=>{
                             children: "Drop Letters"
                         }, void 0, false, {
                             fileName: "src/app.js",
-                            lineNumber: 230,
+                            lineNumber: 247,
                             columnNumber: 11
                         }, undefined)
                     ]
                 }, void 0, true, {
                     fileName: "src/app.js",
-                    lineNumber: 211,
+                    lineNumber: 228,
                     columnNumber: 9
                 }, undefined),
                 /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -24892,7 +24914,7 @@ const App = ()=>{
                             children: "Reset Letters"
                         }, void 0, false, {
                             fileName: "src/app.js",
-                            lineNumber: 246,
+                            lineNumber: 263,
                             columnNumber: 11
                         }, undefined),
                         /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("button", {
@@ -24905,7 +24927,7 @@ const App = ()=>{
                             children: "Toggle Hitboxes"
                         }, void 0, false, {
                             fileName: "src/app.js",
-                            lineNumber: 249,
+                            lineNumber: 266,
                             columnNumber: 11
                         }, undefined),
                         /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("button", {
@@ -24918,28 +24940,97 @@ const App = ()=>{
                             children: simulationPaused ? 'Resume Simulation' : 'Pause Simulation'
                         }, void 0, false, {
                             fileName: "src/app.js",
-                            lineNumber: 253,
+                            lineNumber: 269,
+                            columnNumber: 11
+                        }, undefined),
+                        /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                            style: {
+                                color: 'white',
+                                fontSize: '14px'
+                            },
+                            children: /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("label", {
+                                children: [
+                                    "Sling Radius: ",
+                                    slingRadius,
+                                    /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("input", {
+                                        type: "range",
+                                        min: "50",
+                                        max: "500",
+                                        value: slingRadius,
+                                        onChange: (e)=>setSlingRadius(Number(e.target.value)),
+                                        style: {
+                                            width: '200px'
+                                        }
+                                    }, void 0, false, {
+                                        fileName: "src/app.js",
+                                        lineNumber: 276,
+                                        columnNumber: 15
+                                    }, undefined)
+                                ]
+                            }, void 0, true, {
+                                fileName: "src/app.js",
+                                lineNumber: 274,
+                                columnNumber: 13
+                            }, undefined)
+                        }, void 0, false, {
+                            fileName: "src/app.js",
+                            lineNumber: 273,
+                            columnNumber: 11
+                        }, undefined),
+                        /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                            style: {
+                                color: 'white',
+                                fontSize: '14px'
+                            },
+                            children: /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("label", {
+                                children: [
+                                    "Sling Power: ",
+                                    slingPower.toFixed(2),
+                                    /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("input", {
+                                        type: "range",
+                                        min: "0.05",
+                                        max: "1",
+                                        step: "0.05",
+                                        value: slingPower,
+                                        onChange: (e)=>setSlingPower(Number(e.target.value)),
+                                        style: {
+                                            width: '200px'
+                                        }
+                                    }, void 0, false, {
+                                        fileName: "src/app.js",
+                                        lineNumber: 289,
+                                        columnNumber: 15
+                                    }, undefined)
+                                ]
+                            }, void 0, true, {
+                                fileName: "src/app.js",
+                                lineNumber: 287,
+                                columnNumber: 13
+                            }, undefined)
+                        }, void 0, false, {
+                            fileName: "src/app.js",
+                            lineNumber: 286,
                             columnNumber: 11
                         }, undefined)
                     ]
                 }, void 0, true, {
                     fileName: "src/app.js",
-                    lineNumber: 235,
+                    lineNumber: 252,
                     columnNumber: 9
                 }, undefined)
             ]
         }, void 0, true, {
             fileName: "src/app.js",
-            lineNumber: 204,
+            lineNumber: 221,
             columnNumber: 7
         }, undefined)
     }, void 0, false, {
         fileName: "src/app.js",
-        lineNumber: 203,
+        lineNumber: 220,
         columnNumber: 5
     }, undefined);
 };
-_s(App, "dF2kHFNfs7hWADDMj+857yDJVjY=");
+_s(App, "Nnq11n6MWHcSvQMyaX5Ei5prvXQ=");
 _c = App;
 exports.default = App;
 var _c;

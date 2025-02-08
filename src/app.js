@@ -28,6 +28,18 @@ const App = () => {
   const [showHitboxes, setShowHitboxes] = useState(false);
   const [simulationPaused, setSimulationPaused] = useState(false); // new state
 
+  // New state for sling controls
+  const [slingRadius, setSlingRadius] = useState(200);  
+  const [slingPower, setSlingPower] = useState(0.25);
+
+  // New refs to hold current sling settings
+  const slingRadiusRef = useRef(slingRadius);
+  const slingPowerRef = useRef(slingPower);
+
+  // Update refs when state changes
+  useEffect(() => { slingRadiusRef.current = slingRadius; }, [slingRadius]);
+  useEffect(() => { slingPowerRef.current = slingPower; }, [slingPower]);
+
   useEffect(() => {
     if (!containerRef.current) {
       console.error('Container not found!');
@@ -106,14 +118,26 @@ const App = () => {
       });
     });
 
-    // Add click event listener to apply an outwards force in a circular shape
+    // Cleanup on component unmount
+    return () => {
+      Matter.Render.stop(render);
+      Matter.World.clear(engine.world);
+      Matter.Engine.clear(engine);
+      render.canvas.remove();
+      render.textures = {};
+    };
+  }, []);  // run only once
+
+  // Register event listener once
+  useEffect(() => {
     const handleClick = (event) => {
       const rect = containerRef.current.getBoundingClientRect();
       const clickX = event.clientX - rect.left;
       const clickY = event.clientY - rect.top;
-      const forceRadius = 200; // circle radius in pixels
-      const forceMagnitude = 0.25; // base force magnitude
-      const bodies = engine.world.bodies;
+      // Use current values from refs instead of state
+      const forceRadius = slingRadiusRef.current;
+      const forceMagnitude = slingPowerRef.current;
+      const bodies = engineRef.current.world.bodies;
       bodies.forEach(body => {
         const dx = body.position.x - clickX;
         const dy = body.position.y - clickY;
@@ -127,17 +151,10 @@ const App = () => {
       });
     };
     containerRef.current.addEventListener('click', handleClick);
-
-    // Cleanup on component unmount
     return () => {
       containerRef.current.removeEventListener('click', handleClick);
-      Matter.Render.stop(render);
-      Matter.World.clear(engine.world);
-      Matter.Engine.clear(engine);
-      render.canvas.remove();
-      render.textures = {};
     };
-  }, []);
+  }, []); // empty dependency array so sliders don't reset the app
 
   // On form submit, create a physics body for each letter of the input string
   const handleSubmit = (e) => {
@@ -231,7 +248,7 @@ const App = () => {
             Drop Letters
           </button>
         </form>
-        {/* Vertically stacked buttons in the top right corner */}
+        {/* Vertically stacked buttons and sliders in the top right corner */}
         <div
           style={{
             position: 'absolute',
@@ -249,10 +266,37 @@ const App = () => {
           <button type="button" onClick={toggleHitboxes} style={{ fontSize: '20px', padding: '10px' }}>
             Toggle Hitboxes
           </button>
-          {/* New Pause Simulation button */}
           <button type="button" onClick={toggleSimulation} style={{ fontSize: '20px', padding: '10px' }}>
             {simulationPaused ? 'Resume Simulation' : 'Pause Simulation'}
           </button>
+          {/* New sliders for sling controls */}
+          <div style={{ color: 'white', fontSize: '14px' }}>
+            <label>
+              Sling Radius: {slingRadius}
+              <input
+                type="range"
+                min="50"
+                max="500"
+                value={slingRadius}
+                onChange={(e) => setSlingRadius(Number(e.target.value))}
+                style={{ width: '200px' }}
+              />
+            </label>
+          </div>
+          <div style={{ color: 'white', fontSize: '14px' }}>
+            <label>
+              Sling Power: {slingPower.toFixed(2)}
+              <input
+                type="range"
+                min="0.05"
+                max="1"
+                step="0.05"
+                value={slingPower}
+                onChange={(e) => setSlingPower(Number(e.target.value))}
+                style={{ width: '200px' }}
+              />
+            </label>
+          </div>
         </div>
       </div>
     </ErrorBoundary>
